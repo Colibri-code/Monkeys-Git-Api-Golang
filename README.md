@@ -2,8 +2,10 @@
 
 Install Docker https://www.docker.com/products/docker-desktop
 
-Run docker build . in the root directory where you downloaded this repository.
+Install Docker compose
 
-Run docker image ls. 
+Run docker-compose build
 
-Run docker run -d -t -p 3000:3000 your-image-id
+Run docker-compose up
+
+In visual studio code attach to running container.
