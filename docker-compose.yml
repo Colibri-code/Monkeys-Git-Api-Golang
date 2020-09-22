@@ -9,3 +9,14 @@ services:
       - "8080:80"
     volumes:
       - ./repos:/var/www/git
+  python-service:
+    build:
+      dockerfile: pythonservice.Dockerfile
+      context: .
+    ports: 
+      - "3000:60"
+    volumes:
+      - ./repos:/app
+    restart: always
+    stdin_open: true
+    tty: true
