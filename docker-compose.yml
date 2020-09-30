@@ -9,9 +9,9 @@ services:
       - "8080:80"
     volumes:
       - ./repos:/var/www/git
-  python-service:
+  go-service:
     build:
-      dockerfile: pythonservice.Dockerfile
+      dockerfile: goservice.Dockerfile
       context: .
     ports: 
       - "3000:60"
