@@ -57,16 +57,3 @@ func createBranchFromTag(tag *plumbing.Reference, repository *git.Repository) (b
 	}
 	return true, nil
 }
-
-//Clone a repository in a specific directory
-func CloneRepository(dir string, url string) (*git.Repository, error) {
-	repository, err := git.PlainClone(dir, false, &git.CloneOptions{
-		URL: url,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return repository, nil
-}
