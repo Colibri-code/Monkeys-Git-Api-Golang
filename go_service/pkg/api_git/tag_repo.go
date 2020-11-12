@@ -1,7 +1,6 @@
 package api_git
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/go-git/go-git/v5"
@@ -24,7 +23,7 @@ func TagExists(tag string, r git.Repository) (plumbing.Reference, error) {
 			tagReference = *t
 			return nil
 		}
-		return errors.New(tagFoundErr)
+		return nil
 	})
 
 	if err != nil && err.Error() != tagFoundErr {
