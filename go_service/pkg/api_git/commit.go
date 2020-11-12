@@ -13,6 +13,7 @@ func main() {
 
 	r.HandleFunc("/", HomeHandler).Methods("GET")
 	r.HandleFunc("/ListFiles", ListFilesHandler).Methods("GET")
+	r.HandleFunc("/CopyRepoFromTag", CopyRepoFromTagHandler).Methods("POST")
 	// Start server
 	log.Fatal(http.ListenAndServe(":3000", r))
 
