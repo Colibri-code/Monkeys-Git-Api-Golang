@@ -1,10 +1,9 @@
 package main
 
 import (
+	"go_service/pkg/api_git"
 	"log"
 	"net/http"
-
-	"./pkg/api_git"
 
 	"github.com/gorilla/mux"
 )
@@ -14,7 +13,9 @@ func main() {
 	r := mux.NewRouter()
 
 	// r.HandleFunc("/", HomeHandler).Methods("GET")
-	r.HandleFunc("/ListFiles", api_git.ListFilesDirectories).Methods("GET")
+	r.HandleFunc("/", api_git.HomeHandler).Methods("GET")
+	r.HandleFunc("/ListFiles", api_git.ListFilesHandler).Methods("POST")
+	r.HandleFunc("/CopyRepoFromTag", api_git.CopyRepoFromTagHandler).Methods("POST")
 	// Start server
 	log.Fatal(http.ListenAndServe(":3000", r))
 
