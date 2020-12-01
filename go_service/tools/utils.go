@@ -56,3 +56,12 @@ func Copy(source, destination string) error {
 	})
 	return err
 }
+
+func BytesToString(data []byte) string {
+	return string(data[:])
+}
+
+type Response struct {
+	Message string `json:"message"`
+	Result  string `json:"result"`
+}
