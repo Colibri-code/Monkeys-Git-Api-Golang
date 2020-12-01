@@ -3,6 +3,7 @@ package api_git
 import (
 	"encoding/json"
 	"fmt"
+	"go_service/tools"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -14,14 +15,9 @@ type TagRequest struct {
 	Name string `json:"name"`
 }
 
-type Response struct {
-	Message string `json:"message"`
-	Result  string `json:"result"`
-}
-
 func CopyRepoFromTagHandler(w http.ResponseWriter, r *http.Request) {
 	var tagRequest TagRequest
-	var response Response
+	var response tools.Response
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
 		panic(err)
