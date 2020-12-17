@@ -17,6 +17,7 @@ func main() {
 	r.HandleFunc("/ListFiles", api_git.ListFilesHandler).Methods("POST")
 	r.HandleFunc("/CopyRepoFromTag", api_git.CopyRepoFromTagHandler).Methods("POST")
 	r.HandleFunc("/CreateMerge", api_git.MergeHandler).Methods("POST")
+	r.HandleFunc("/Diff", api_git.DiffHandler).Methods("POST")
 	// Start server
 	log.Fatal(http.ListenAndServe(":3000", r))
 
