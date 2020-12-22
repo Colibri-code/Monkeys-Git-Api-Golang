@@ -6,8 +6,9 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-func getCommit(hash plumbing.Hash, repo git.Repository) (*object.Commit, error) {
-	commit, err := repo.CommitObject(hash)
+func getCommit(hash string, repo git.Repository) (*object.Commit, error) {
+	hashObject := plumbing.NewHash(hash)
+	commit, err := repo.CommitObject(hashObject)
 	if err != nil {
 		return nil, err
 	}
@@ -15,16 +16,17 @@ func getCommit(hash plumbing.Hash, repo git.Repository) (*object.Commit, error) 
 	return commit, nil
 }
 
-func difference(path string, hash string) (*object.Patch, error) {
+func diffToHead(path string, hash string) (*object.Patch, error) {
 	repo, err := git.PlainOpen(path)
 	var patch *object.Patch = nil
 
 	if repo != nil {
-		hashObject := plumbing.NewHash(hash)
-		commit, err := getCommit(hashObject, *repo)
+		commit, err := getCommit(hash, *repo)
 		if err == nil && commit != nil {
+
 			ref, _ := repo.Head()
 			commitHead, _ := repo.CommitObject(ref.Hash())
+			//Compare with the head of the repo
 			patch, err = commit.Patch(commitHead)
 			if err == nil && patch != nil {
 				return patch, nil

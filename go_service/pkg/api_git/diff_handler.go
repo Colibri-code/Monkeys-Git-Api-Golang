@@ -29,7 +29,7 @@ func DiffHandler(w http.ResponseWriter, r *http.Request) {
 				panic(err)
 			}
 		}
-		result, err := difference(diffRequest.Url, diffRequest.Hash)
+		result, err := diffToHead(diffRequest.Url, diffRequest.Hash)
 
 		if err != nil {
 			response.Message = err.Error()
