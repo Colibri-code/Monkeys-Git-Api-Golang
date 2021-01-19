@@ -10,8 +10,10 @@ import (
 )
 
 type DiffRequest struct {
-	Hash string `json:"hash"`
-	Url  string `json:"url"`
+	UrlMain  string `json:"urlMain"`
+	HashMain string `json:"hashMain"`
+	UrlDiff  string `json:"urlDiff"`
+	HashDiff string `json:"hashDiff"`
 }
 
 func DiffHandler(w http.ResponseWriter, r *http.Request) {
@@ -29,8 +31,7 @@ func DiffHandler(w http.ResponseWriter, r *http.Request) {
 				panic(err)
 			}
 		}
-		result, err := diffToHead(diffRequest.Url, diffRequest.Hash)
-
+		result, err := diffTreeRepos(diffRequest)
 		if err != nil {
 			response.Message = err.Error()
 			response.Result = "Error"
