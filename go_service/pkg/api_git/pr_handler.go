@@ -1,6 +1,7 @@
 package api_git
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"go_service/tools"
@@ -50,9 +51,17 @@ func PRHandler(w http.ResponseWriter, r *http.Request) {
 
 			}
 			if result != nil && err == nil {
-				jsonResult, _ := json.Marshal(result)
-				response.Message = string(jsonResult)
-				response.Result = "Success"
+				sendRequest, _ := json.Marshal(response)
+				res, err := http.Post(tools.UrlApi, "application/json", bytes.NewBuffer(sendRequest))
+				if res != nil {
+					response.Message = "Pull request save"
+					response.Result = "Success"
+				}
+				if err != nil {
+					response.Message = err.Error()
+					response.Result = "Error"
+				}
+
 			}
 
 			encodeData, _ := json.Marshal(response)
