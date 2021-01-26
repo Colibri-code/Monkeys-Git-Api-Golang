@@ -65,3 +65,5 @@ type Response struct {
 	Message string `json:"message"`
 	Result  string `json:"result"`
 }
+
+var UrlApi string = "http://localhost:1337/PullRequest/create"
