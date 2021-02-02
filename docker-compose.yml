@@ -13,10 +13,11 @@ services:
     build:
       dockerfile: goservice.Dockerfile
       context: .
-    ports: 
+    ports:
       - "3000:60"
     volumes:
-      - ./repos:/app
+      - ./repos:/repos
+      - ./:/app
     restart: always
     stdin_open: true
     tty: true
