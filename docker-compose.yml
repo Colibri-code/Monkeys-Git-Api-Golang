@@ -20,3 +20,17 @@ services:
     restart: always
     stdin_open: true
     tty: true
+
+  db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    container_name: Mongodatabase
+    volumes: 
+    - mongo:/data/db
+    hostname: mongo
+
+volumes:
+  mongo:
+   
+   
