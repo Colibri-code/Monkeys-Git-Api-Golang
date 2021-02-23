@@ -9,32 +9,36 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type PRCreate struct {
-	Id               int       `json:"id"`
-	NumberPR         int       `json:"numberPR"`         // Consecutive number of the pull request
-	IdUser           int       `json:"idUser"`           // id user to create a pull request
-	Title            string    `json:"title"`            // Title of thr pull request
-	Body             string    `json:"body"`             // Comment of the pull request
-	UrlRepoReceivePR string    `json:"urlRepoReceivePR"` // Url to repo the receive the pull request
-	UrlRepoCreatePR  string    `json:"urlRepoCreatePR"`  // Url the repo to create a pull request
-	CommitHash       string    `json:"commitHash"`       // hash the commit
-	Patch            string    `json:"patch"`            // Differences
-	BranchNamePR     string    `json:"branchNamePR"`
-	IsLocked         bool      `json:"isLocked"`
-	Mergeable        bool      `json:"mergeable"`
-	HasMerged        bool      `json:"hasMerged"`
-	Merged           time.Time `json:"merged"`
-	MergedCommitID   string    `json:"mergedCommitID"`
-	MergedBy         int       `json:"mergedBy"`
+	Id               primitive.ObjectID `bson: "_id" `
+	NumberPR         int                `bson:"numberPR,omitempty"`         // Consecutive number of the pull request
+	IdUser           int                `bson:"idUser,omitempty"`           // id user to create a pull request
+	Title            string             `bson:"title,omitempty"`            // Title of thr pull request
+	Body             string             `bson:"body,omitempty"`             // Comment of the pull request
+	UrlRepoReceivePR string             `bson:"urlRepoReceivePR,omitempty"` // Url to repo the receive the pull request
+	UrlRepoCreatePR  string             `bson:"urlRepoCreatePR,omitempty"`  // Url the repo to create a pull request
+	CommitHash       string             `bson:"commitHash,omitempty"`       // hash the commit
+	Patch            string             `bson:"patch,omitempty"`            // Differences
+	BranchNamePR     string             `bson:"branchNamePR,omitempty"`
+	IsLocked         bool               `bson:"isLocked,omitempty"`
+	Mergeable        bool               `bson:"mergeable,omitempty"`
+	HasMerged        bool               `bson:"hasMerged,omitempty"`
+	Merged           time.Time          `bson:"merged,omitempty"`
+	MergedCommitID   string             `bson:"mergedCommitID,omitempty"`
+	MergedBy         int                `bson:"mergedBy,omitempty"`
 }
 
 func PRHandler(w http.ResponseWriter, r *http.Request) {
 	var prCreate PRCreate
 	var response tools.Response
+
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
+
 		panic(err)
 	}
 	if body != nil {
@@ -69,4 +73,10 @@ func PRHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+func InsertOne(w http.ResponseWriter, r *http.Request) {
+
+	tools.ConnectionDB()
+
 }
