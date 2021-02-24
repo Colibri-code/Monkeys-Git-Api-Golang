@@ -2,6 +2,7 @@ package api_git
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"go_service/tools"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type PRCreate struct {
@@ -31,6 +33,8 @@ type PRCreate struct {
 	MergedCommitID   string             `bson:"mergedCommitID,omitempty"`
 	MergedBy         int                `bson:"mergedBy,omitempty"`
 }
+
+var client *mongo.Client
 
 func PRHandler(w http.ResponseWriter, r *http.Request) {
 	var prCreate PRCreate
@@ -79,4 +83,17 @@ func InsertOne(w http.ResponseWriter, r *http.Request) {
 
 	tools.ConnectionDB()
 
+	var pr PRCreate
+
+	w.Header().Add("content-type", "application/json")
+
+	json.NewDecoder(r.Body).Decode(&pr)
+
+	collection := client.Database("go_git").Collection("PR_Collection")
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	result, _ := collection.InsertOne(ctx, pr)
+
+	json.NewEncoder(w).Encode(result)
 }

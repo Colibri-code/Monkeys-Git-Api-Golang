@@ -19,6 +19,7 @@ func main() {
 	r.HandleFunc("/CreateMerge", api_git.MergeHandler).Methods("POST")
 	r.HandleFunc("/Diff", api_git.DiffHandler).Methods("POST")
 	r.HandleFunc("/PullRequest", api_git.PRHandler).Methods("POST")
+	r.HandleFunc("/InsertPR", api_git.InsertOne).Methods("POST")
 	// Start server
 	log.Fatal(http.ListenAndServe(":3000", r))
 
