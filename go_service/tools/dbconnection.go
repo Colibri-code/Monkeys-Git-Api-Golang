@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func ConnectionDB() {
+func ConnectionDB() *mongo.Client {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -28,4 +28,5 @@ func ConnectionDB() {
 	}
 
 	fmt.Println("Connected to MongoDB!")
+	return client
 }

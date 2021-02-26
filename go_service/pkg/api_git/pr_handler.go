@@ -84,18 +84,21 @@ func InsertOne(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("content-type", "application/json")
 
-	tools.ConnectionDB()
+	clientDB := tools.ConnectionDB()
 
 	var Pr PRCreate
 
 	_ = json.NewDecoder(r.Body).Decode(&Pr)
 
-	collection := client.Database("go_git").Collection("PR_collection")
+	Database := clientDB.Database("go_git")
+	collection := Database.Collection("PR_collection")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	result, _ := collection.InsertOne(ctx, Pr)
-
+	result, err := collection.InsertOne(ctx, Pr)
+	if err != nil {
+		println(err)
+	}
 	json.NewEncoder(w).Encode(result)
 
 }
@@ -104,11 +107,11 @@ func GetOne(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Add("content-type", "application/json")
 
-	tools.ConnectionDB()
+	clientDB := tools.ConnectionDB()
 
 	var PR []PRCreate
 
-	database := client.Database("go_git")
+	database := clientDB.Database("go_git")
 	PRcollection := database.Collection("PR_collection")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
