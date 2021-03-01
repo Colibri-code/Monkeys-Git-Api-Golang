@@ -11,13 +11,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type PRCreate struct {
-	Id               primitive.ObjectID `json:"_id, omitempty" bson: "_id, omitempty" `
+	_Id              primitive.ObjectID `json:"_id, omitempty" bson: "_id, omitempty" `
 	NumberPR         int                `json:"numberPR, omitempty" bson:"numberPR,omitempty"`                 // Consecutive number of the pull request
 	IdUser           int                `json:"idUser, omitempty" bson:"idUser,omitempty"`                     // id user to create a pull request
 	Title            string             `json:"title, omitempty" bson:"title,omitempty"`                       // Title of thr pull request
@@ -34,8 +34,6 @@ type PRCreate struct {
 	MergedCommitID   string             `json:"mergedCommitID, omitempty" bson:"mergedCommitID,omitempty"`
 	MergedBy         int                `json:"mergedBy, omitempty" bson:"mergedBy,omitempty"`
 }
-
-var client *mongo.Client
 
 func PRHandler(w http.ResponseWriter, r *http.Request) {
 	var prCreate PRCreate
@@ -80,17 +78,22 @@ func PRHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+* Function that inserts a pull request to the database
+ */
 func InsertOne(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("content-type", "application/json")
 
-	tools.ConnectionDB()
+	DBclient := tools.ConnectionDB()
 
 	var Pr PRCreate
 
 	_ = json.NewDecoder(r.Body).Decode(&Pr)
 
-	collection := client.Database("go_git").Collection("PR_collection")
+	/*Look for the Database and PRcollection where its been store*/
+
+	collection := DBclient.Database("go_git").Collection("PR_collection")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
@@ -98,17 +101,19 @@ func InsertOne(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(result)
 
+	DBclient = tools.Disconnect()
+
 }
 
-func GetOne(res http.ResponseWriter, req *http.Request) {
+func GetAllPr(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Add("content-type", "application/json")
 
-	tools.ConnectionDB()
+	DBclient := tools.ConnectionDB()
 
 	var PR []PRCreate
 
-	database := client.Database("go_git")
+	database := DBclient.Database("go_git")
 	PRcollection := database.Collection("PR_collection")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
@@ -128,4 +133,101 @@ func GetOne(res http.ResponseWriter, req *http.Request) {
 	}
 
 	json.NewEncoder(res).Encode(PR)
+
+	DBclient = tools.Disconnect()
+}
+
+func GetOnePr(res http.ResponseWriter, req *http.Request) {
+
+	res.Header().Add("content-type", "application/json")
+
+	params := mux.Vars(req)
+
+	id, _ := primitive.ObjectIDFromHex(params["id"])
+
+	var Pr PRCreate
+
+	DBclient := tools.ConnectionDB()
+
+	database := DBclient.Database("go_git")
+
+	PRcollection := database.Collection("PR_collection")
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	err := PRcollection.FindOne(ctx, PRCreate{_Id: id}).Decode(&Pr)
+
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write([]byte(` {"message":" ` + err.Error() + `"}`))
+		return
+	}
+	json.NewEncoder(res).Encode(Pr)
+
+	DBclient = tools.Disconnect()
+
+}
+
+func UpdatePr(res http.ResponseWriter, req *http.Request) {
+
+	res.Header().Add("content-type", "application/json")
+
+	params := mux.Vars(req)
+
+	var Pr PRCreate
+
+	id, _ := primitive.ObjectIDFromHex(params["id"])
+
+	DBclient := tools.ConnectionDB()
+
+	database := DBclient.Database("go_git")
+
+	PRcollection := database.Collection("PR_collection")
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	json.NewDecoder(req.Body).Decode(&Pr)
+
+	result, err := PRcollection.UpdateOne(ctx, bson.M{"_id": id}, bson.D{
+		{"$set", Pr},
+	},
+	)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write([]byte(` {"message":" ` + err.Error() + `"}`))
+		return
+	}
+
+	json.NewEncoder(res).Encode(result)
+
+	DBclient = tools.Disconnect()
+}
+
+func DeleteOnePr(res http.ResponseWriter, req *http.Request) {
+
+	res.Header().Add("content-type", "application/json")
+
+	params := mux.Vars(req)
+
+	id, _ := primitive.ObjectIDFromHex(params["id"])
+
+	DBclient := tools.ConnectionDB()
+
+	database := DBclient.Database("go_git")
+
+	PRcollection := database.Collection("PR_collection")
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	result, err := PRcollection.DeleteOne(ctx, bson.M{"_id": id})
+
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write([]byte(` {"message":" ` + err.Error() + `"}`))
+		return
+	}
+
+	json.NewEncoder(res).Encode(result)
+
+	DBclient = tools.Disconnect()
 }

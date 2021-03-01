@@ -19,8 +19,11 @@ func main() {
 	r.HandleFunc("/CreateMerge", api_git.MergeHandler).Methods("POST")
 	r.HandleFunc("/Diff", api_git.DiffHandler).Methods("POST")
 	r.HandleFunc("/PullRequest", api_git.PRHandler).Methods("POST")
-	r.HandleFunc("/InsertPR", api_git.InsertOne).Methods("POST")
-	r.HandleFunc("/getPR", api_git.GetOne).Methods("GET")
+	r.HandleFunc("/CreatePr", api_git.InsertOne).Methods("POST")
+	r.HandleFunc("/GetPr", api_git.GetAllPr).Methods("GET")
+	r.HandleFunc("/GetOnePr/{id}", api_git.GetOnePr).Methods("GET")
+	r.HandleFunc("/UpdatePr/{id}", api_git.UpdatePr).Methods("PUT")
+	r.HandleFunc("/DeletePr/{id}", api_git.DeleteOnePr).Methods("DELETE")
 	// Start server
 	log.Fatal(http.ListenAndServe(":3000", r))
 

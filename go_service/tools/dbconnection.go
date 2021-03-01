@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func ConnectionDB() {
+func ConnectionDB() *mongo.Client {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -28,4 +28,23 @@ func ConnectionDB() {
 	}
 
 	fmt.Println("Connected to MongoDB!")
+
+	return client
+}
+
+func Disconnect() *mongo.Client {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongo:27017"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = client.Disconnect(context.TODO())
+
+	fmt.Println("Connection to MongoDB closed.")
+
+	return client
 }
