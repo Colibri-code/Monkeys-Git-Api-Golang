@@ -99,9 +99,16 @@ func InsertOne(w http.ResponseWriter, r *http.Request) {
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
+<<<<<<< HEAD
 	// Insert query from MongoDB
 	result, _ := collection.InsertOne(ctx, Pr)
 
+=======
+	result, err := collection.InsertOne(ctx, Pr)
+	if err != nil {
+		println(err)
+	}
+>>>>>>> 4d9f5689e88800ac6bf2f0d5f9d9b9492048d02b
 	json.NewEncoder(w).Encode(result)
 
 	DBclient = tools.Disconnect()
@@ -126,6 +133,7 @@ func GetAllPr(res http.ResponseWriter, req *http.Request) {
 	// Stores the name of the database and the collection in the variables (database, PRcollection)
 
 	database := DBclient.Database("go_git")
+
 	PRcollection := database.Collection("PR_collection")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
