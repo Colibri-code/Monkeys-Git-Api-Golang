@@ -97,8 +97,10 @@ func InsertOne(w http.ResponseWriter, r *http.Request) {
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	result, _ := collection.InsertOne(ctx, Pr)
-
+	result, err := collection.InsertOne(ctx, Pr)
+	if err != nil {
+		println(err)
+	}
 	json.NewEncoder(w).Encode(result)
 
 	DBclient = tools.Disconnect()
@@ -114,6 +116,7 @@ func GetAllPr(res http.ResponseWriter, req *http.Request) {
 	var PR []PRCreate
 
 	database := DBclient.Database("go_git")
+
 	PRcollection := database.Collection("PR_collection")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
