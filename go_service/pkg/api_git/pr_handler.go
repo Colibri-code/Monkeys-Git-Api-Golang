@@ -79,41 +79,58 @@ func PRHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-* Function that inserts a pull request to the database
+* Function that insert a pull request to the database
  */
 func InsertOne(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("content-type", "application/json")
 
+	//Open Connection with MongoDD
+	//Funtion locate in tools Directory
 	DBclient := tools.ConnectionDB()
 
 	var Pr PRCreate
 
-	_ = json.NewDecoder(r.Body).Decode(&Pr)
+	json.NewDecoder(r.Body).Decode(&Pr)
 
-	/*Look for the Database and PRcollection where its been store*/
+	/*Search the database and collection where the information is stored */
 
 	collection := DBclient.Database("go_git").Collection("PR_collection")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
+<<<<<<< HEAD
+	// Insert query from MongoDB
+	result, _ := collection.InsertOne(ctx, Pr)
+
+=======
 	result, err := collection.InsertOne(ctx, Pr)
 	if err != nil {
 		println(err)
 	}
+>>>>>>> 4d9f5689e88800ac6bf2f0d5f9d9b9492048d02b
 	json.NewEncoder(w).Encode(result)
 
 	DBclient = tools.Disconnect()
 
 }
 
+/*
+* Function that get all from the collection (PR_Collection)
+* through the {id} as parameter
+ */
+
 func GetAllPr(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Add("content-type", "application/json")
 
+	//Open Connection with MongoDD
+	//Funtion locate in tools Directory
 	DBclient := tools.ConnectionDB()
 
 	var PR []PRCreate
+
+	// Stores the name of the database and the collection in the variables (database, PRcollection)
 
 	database := DBclient.Database("go_git")
 
@@ -121,35 +138,50 @@ func GetAllPr(res http.ResponseWriter, req *http.Request) {
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
+	// Find Query from MongoDB
+
 	cursor, err := PRcollection.Find(ctx, bson.M{})
 
+	// Error handler
 	if err != nil {
 
 		res.Write([]byte(` {"message":" ` + err.Error() + `"}`))
 		return
 	}
 	defer cursor.Close(ctx)
+
+	// Scroll through the list to store the information in the PR array
 	for cursor.Next(ctx) {
 		var PResquest PRCreate
 		cursor.Decode(&PResquest)
 		PR = append(PR, PResquest)
 	}
 
+	//Returns  this line if there are not error
 	json.NewEncoder(res).Encode(PR)
 
+	//Disconnect from Database
 	DBclient = tools.Disconnect()
 }
 
+/*
+* Function that get a record from the collection
+* through the {id} as parameter
+ */
 func GetOnePr(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Add("content-type", "application/json")
 
 	params := mux.Vars(req)
 
+	//Get id params and store in the params variable
+	// {Primitive.ObjectIDFromHex} it is because of the type of data that is the id in the database
 	id, _ := primitive.ObjectIDFromHex(params["id"])
 
 	var Pr PRCreate
 
+	//Open Connection with MongoDD
+	//Funtion locate in tools Directory
 	DBclient := tools.ConnectionDB()
 
 	database := DBclient.Database("go_git")
@@ -157,6 +189,11 @@ func GetOnePr(res http.ResponseWriter, req *http.Request) {
 	PRcollection := database.Collection("PR_collection")
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	// FindOne Query from MongoDB
+	//This Query receives 2 parameters
+	// The Firts is the context
+	// The Second is the Filter (in this case is the {id} variable)
 
 	err := PRcollection.FindOne(ctx, PRCreate{_Id: id}).Decode(&Pr)
 
@@ -165,12 +202,20 @@ func GetOnePr(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte(` {"message":" ` + err.Error() + `"}`))
 		return
 	}
+
+	//Returns  this line if there are not error
+
 	json.NewEncoder(res).Encode(Pr)
 
+	//Disconnect from Database
 	DBclient = tools.Disconnect()
 
 }
 
+/*
+* Function that update a record from the collection
+* through the {id} as parameter
+ */
 func UpdatePr(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Add("content-type", "application/json")
@@ -179,7 +224,12 @@ func UpdatePr(res http.ResponseWriter, req *http.Request) {
 
 	var Pr PRCreate
 
+	//Get id params and store in the params variable
+	// {Primitive.ObjectIDFromHex} it is because of the type of data that is the id in the database
 	id, _ := primitive.ObjectIDFromHex(params["id"])
+
+	//Open Connection with MongoDD
+	//Funtion locate in tools Directory
 
 	DBclient := tools.ConnectionDB()
 
@@ -191,26 +241,42 @@ func UpdatePr(res http.ResponseWriter, req *http.Request) {
 
 	json.NewDecoder(req.Body).Decode(&Pr)
 
+	// UpdateOne Query from MongoDB
+	//This Query receives 3 parameters
+	// The Firts is the context
+	// The Second is the Filter (in this case is the {id} variable)
+	// The Third is the data to Update that comes from request(res)
 	result, err := PRcollection.UpdateOne(ctx, bson.M{"_id": id}, bson.D{
 		{"$set", Pr},
 	},
 	)
+	//Error handler
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		res.Write([]byte(` {"message":" ` + err.Error() + `"}`))
 		return
 	}
 
+	//Returns  this line if there are not error
 	json.NewEncoder(res).Encode(result)
 
+	//Disconnect from Database
 	DBclient = tools.Disconnect()
 }
+
+/*
+* Function that Delete a record from the collection
+* through the {id} as parameter
+ */
 
 func DeleteOnePr(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Add("content-type", "application/json")
 
 	params := mux.Vars(req)
+
+	//Get id params and store in the params variable
+	// {Primitive.ObjectIDFromHex} it is because of the type of data that is the id in the database
 
 	id, _ := primitive.ObjectIDFromHex(params["id"])
 
@@ -222,6 +288,10 @@ func DeleteOnePr(res http.ResponseWriter, req *http.Request) {
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
+	// DeleteOne Query from MongoDB
+	//This Query receives 2 parameters
+	// The Firts is the context
+	// The Second is the Filter (in this case is the {id} variable)
 	result, err := PRcollection.DeleteOne(ctx, bson.M{"_id": id})
 
 	if err != nil {
@@ -229,8 +299,9 @@ func DeleteOnePr(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte(` {"message":" ` + err.Error() + `"}`))
 		return
 	}
-
+	//Returns  this line if there are not error
 	json.NewEncoder(res).Encode(result)
 
+	//Disconnect from Database
 	DBclient = tools.Disconnect()
 }
