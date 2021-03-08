@@ -85,6 +85,7 @@ func InsertOne(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("content-type", "application/json")
 
+	var response tools.Response
 	//Open Connection with MongoDD
 	//Funtion locate in tools Directory
 	DBclient := tools.ConnectionDB()
@@ -99,16 +100,20 @@ func InsertOne(w http.ResponseWriter, r *http.Request) {
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-<<<<<<< HEAD
-	// Insert query from MongoDB
-	result, _ := collection.InsertOne(ctx, Pr)
-
-=======
-	result, err := collection.InsertOne(ctx, Pr)
+	prCreated, err := pullRequest(Pr)
 	if err != nil {
-		println(err)
+		response.Message = err.Error()
+		response.Result = "Error"
+
 	}
->>>>>>> 4d9f5689e88800ac6bf2f0d5f9d9b9492048d02b
+	// Insert query from MongoDB
+	result, err := collection.InsertOne(ctx, prCreated)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(` {"message":" ` + err.Error() + `"}`))
+		return
+	}
 	json.NewEncoder(w).Encode(result)
 
 	DBclient = tools.Disconnect()

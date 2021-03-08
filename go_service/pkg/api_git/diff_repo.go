@@ -9,6 +9,9 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
+/*
+*Funcion que obtiene los commits de los repositorios
+ */
 func getCommit(hash string, repo git.Repository) (*object.Commit, error) {
 	hashObject := plumbing.NewHash(hash)
 	commit, err := repo.CommitObject(hashObject)
@@ -44,6 +47,11 @@ func diffToHead(path string, hash string) (*object.Patch, error) {
 
 }
 
+/*
+*Funcion que compara los dos repositorios (URL_main_repo/URL_Diff_repo)
+comprueba si existen cambios en los repositorios y retorna cuales
+son los archivos que se modificaron
+*/
 func diffTreeRepos(diffRequest DiffRequest) (object.Changes, error) {
 	if diffRequest.UrlMain != "" && diffRequest.UrlDiff != "" {
 
