@@ -13,8 +13,9 @@ func main() {
 	r := mux.NewRouter()
 
 	// r.HandleFunc("/", HomeHandler).Methods("GET")
-	r.HandleFunc("/", api_git.HomeHandler).Methods("GET")
+	//r.HandleFunc("/", api_git.HomeHandler).Methods("GET")
 	r.HandleFunc("/ListFiles", api_git.ListFilesHandler).Methods("POST")
+	r.HandleFunc("/ListFile", api_git.ListFileHandler).Methods("POST")
 	r.HandleFunc("/CopyRepoFromTag", api_git.CopyRepoFromTagHandler).Methods("POST")
 	r.HandleFunc("/CreateMerge", api_git.MergeHandler).Methods("POST")
 	r.HandleFunc("/Diff", api_git.DiffHandler).Methods("POST")
@@ -24,6 +25,9 @@ func main() {
 	r.HandleFunc("/GetOnePr/{id}", api_git.GetOnePr).Methods("GET")
 	r.HandleFunc("/UpdatePr/{id}", api_git.UpdatePr).Methods("PUT")
 	r.HandleFunc("/DeletePr/{id}", api_git.DeleteOnePr).Methods("DELETE")
+
+	r.HandleFunc("/ListBlobFiles", api_git.ListDataToFile).Methods("POST")
+
 	// Start server
 	log.Fatal(http.ListenAndServe(":3000", r))
 

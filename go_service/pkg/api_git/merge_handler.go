@@ -7,6 +7,9 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/go-git/go-git/plumbing/storer"
+	"github.com/go-git/go-git/v5"
 )
 
 type MergeRequest struct {
@@ -46,4 +49,13 @@ func MergeHandler(w http.ResponseWriter, r *http.Request) {
 	encodeData, _ := json.Marshal(response)
 	fmt.Fprintf(w, string(encodeData))
 	return
+}
+
+func getBranches(mergeRequest MergeRequest) (storer.ReferenceIter, error) {
+
+	repo, err := git.PlainOpen(baseRepoDir + mergeRequest.Url)
+
+	repo.Branches()
+
+	return nil, err
 }

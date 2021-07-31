@@ -18,6 +18,9 @@ func ListFilesDirectories(Path string) ([]string, error) {
 
 		if treeIter != nil {
 			treeIter.ForEach(func(t *object.Tree) error {
+
+				// ... get the files iterator and print the file
+
 				t.Files().ForEach(func(f *object.File) error {
 					files = append(files, f.Name)
 					return nil
