@@ -7,9 +7,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
-	"github.com/go-git/go-git/plumbing/storer"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 type MergeRequest struct {
@@ -51,11 +52,35 @@ func MergeHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func getBranches(mergeRequest MergeRequest) (storer.ReferenceIter, error) {
+func getBranches(repoUrl string, skip, limit int) ([]string, int, error) {
 
-	repo, err := git.PlainOpen(baseRepoDir + mergeRequest.Url)
+	repo, err := git.PlainOpen(repoUrl)
 
-	repo.Branches()
+	var branchNames []string
 
-	return nil, err
+	branches, err := repo.Branches()
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	i := 0
+
+	count := 0
+
+	_ = branches.ForEach(func(r *plumbing.Reference) error {
+		count++
+
+		if i < skip {
+			i++
+			return nil
+		} else if limit != 0 && count > skip+limit {
+			return nil
+		}
+
+		branchNames = append(branchNames, strings.TrimPrefix(r.Name().String(), BranchPrefix))
+		return nil
+	})
+
+	return branchNames, count, nil
 }

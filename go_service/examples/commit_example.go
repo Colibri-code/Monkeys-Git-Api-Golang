@@ -114,28 +114,38 @@ func ListFilesDirectories(Path string) ([]string, error) {
 func ListBlobFile(Path string) ([]string, error) {
 
 	repo, err := git.PlainOpen(Path)
-	var fileblob []string
+	var filepath []string
+
 	ref, err := repo.Head()
 	commit, err := repo.CommitObject(ref.Hash())
+
 	tree, err := commit.Tree()
 	fs := osfs.New(Path)
 
 	tree.Files().ForEach(func(f *object.File) error {
-		fileblob = append(fileblob, f.Name)
+		filepath = append(filepath, f.Name)
+
+		blob, err := showfile(commit, f.Name)
+		if err != nil {
+
+		}
 
 		fmt.Printf("100644 blob %s    %s\n", f.Hash, f.Name)
+		fmt.Printf(blob.Hash.String())
 		return nil
 	})
 
 	commitNodeIndex, file := getCommitNodeIndex(repo, fs)
 
 	if file != nil {
+
 		defer file.Close()
+
 	}
 
 	commitNode, err := commitNodeIndex.Get(commit.ID())
 
-	revs, err := getLastCommitForPaths(commitNode, Path, fileblob)
+	revs, err := getLastCommitForPaths(commitNode, "", filepath)
 
 	for path, rev := range revs {
 
@@ -143,6 +153,7 @@ func ListBlobFile(Path string) ([]string, error) {
 		line := strings.Split(rev.Message, "\n")
 
 		fmt.Println(path, hash[:7], line[0])
+
 	}
 
 	/*	if repo != nil {
@@ -161,7 +172,7 @@ func ListBlobFile(Path string) ([]string, error) {
 
 	}*/
 
-	return fileblob, err
+	return filepath, err
 }
 
 func getCommitNodeIndex(r *git.Repository, fs billy.Filesystem) (commitgraph.CommitNodeIndex, io.ReadCloser) {
@@ -349,4 +360,38 @@ func getLastCommitForPaths(c commitgraph.CommitNode, treePath string, paths []st
 	}
 
 	return result, nil
+}
+
+func showfile(obj object.Object, path string) (*object.Blob, error) {
+
+	switch o := obj.(type) {
+	case *object.Commit:
+		t, err := o.Tree()
+
+		if err != nil {
+			return nil, err
+		}
+		return showfile(t, path)
+
+	case *object.Tag:
+		target, err := o.Object()
+
+		if err != nil {
+			return nil, err
+		}
+		return showfile(target, path)
+	case *object.Tree:
+		file, err := o.File(path)
+		if err != nil {
+			return nil, err
+		}
+		return &file.Blob, nil
+
+	case *object.Blob:
+		return o, nil
+
+	default:
+		return nil, object.ErrUnsupportedObject
+	}
+
 }
