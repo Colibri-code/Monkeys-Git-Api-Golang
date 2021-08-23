@@ -98,9 +98,9 @@ func ListDataToFile(w http.ResponseWriter, r *http.Request) {
 				panic(err)
 			}
 		}
-		//	files, err := examples.ListBlobFile(directory.Name)
+		files, err := examples.ListBlobFile(directory.Name, directory.File)
 
-		branches, err := api_git.getBranches(directory.Name, 1, 1)
+		//	branches, err := api_git.getBranches(directory.Name, 1, 1)
 		if err != nil {
 			response.Message = err.Error()
 			response.Result = "Error"
