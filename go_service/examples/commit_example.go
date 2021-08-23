@@ -6,13 +6,16 @@ package examples
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"path"
-	"strings"
+
+	//	"strings"
 
 	"github.com/emirpasic/gods/trees/binaryheap"
 	"github.com/go-git/go-billy/v5"
-	"github.com/go-git/go-billy/v5/osfs"
+
+	//"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/plumbing"
 	"github.com/go-git/go-git/v5"
 	commitgraph_fmt "github.com/go-git/go-git/v5/plumbing/format/commitgraph"
@@ -43,6 +46,7 @@ func main() {
 	fmt.Println("Message of this commit: ", message)
 	fmt.Println("hash of this commit: ", hash)
 	fmt.Println("Time stamp of the commit: ", time)
+
 }
 
 type commitAndPaths struct {
@@ -111,68 +115,108 @@ func ListFilesDirectories(Path string) ([]string, error) {
 	return files, err
 }
 
-func ListBlobFile(Path string) ([]string, error) {
+func ListBlobFile(repoPath string, fileP string) ([]string, error) {
 
-	repo, err := git.PlainOpen(Path)
+	repo, err := git.PlainOpen(repoPath)
+
 	var filepath []string
 
+	var datafile []string
+
 	ref, err := repo.Head()
+
 	commit, err := repo.CommitObject(ref.Hash())
 
 	tree, err := commit.Tree()
-	fs := osfs.New(Path)
+
+	tree.Tree(fileP)
+	//fs := osfs.New(Path)
 
 	tree.Files().ForEach(func(f *object.File) error {
+
 		filepath = append(filepath, f.Name)
 
-		blob, err := showfile(commit, f.Name)
-		if err != nil {
+		//blob, err := showfile(commit, f.Name)
 
-		}
+		/*Id is present to fulfill the Object interface*/
+		fmt.Printf("File Hashe and Path: %s    %s\n", f.Hash, f.Name)
 
-		fmt.Printf("100644 blob %s    %s\n", f.Hash, f.Name)
-		fmt.Printf(blob.Hash.String())
 		return nil
 	})
 
-	commitNodeIndex, file := getCommitNodeIndex(repo, fs)
+	treefile, err := tree.File(fileP)
 
-	if file != nil {
+	for i := 0; i < len(filepath); i++ {
 
-		defer file.Close()
+		if filepath[i] == fileP {
+
+			objectblob, err := repo.BlobObject(treefile.Hash)
+
+			openblob, err := objectblob.Reader()
+
+			data, err := ioutil.ReadAll(openblob)
+
+			datafile = append(datafile, string(data))
+
+			fmt.Println(data)
+
+			if err != nil {
+
+			}
+			fmt.Printf("FilePath and parameter: %s    %s\n", filepath[i], fileP)
+			fmt.Println(objectblob, objectblob)
+			break
+			//
+
+			//
+
+			//
+
+		}
 
 	}
 
-	commitNode, err := commitNodeIndex.Get(commit.ID())
+	fmt.Println(treefile)
 
-	revs, err := getLastCommitForPaths(commitNode, "", filepath)
+	/*	commitNodeIndex, file := getCommitNodeIndex(repo, fs)
 
-	for path, rev := range revs {
+		if file != nil {
 
-		hash := rev.Hash.String()
-		line := strings.Split(rev.Message, "\n")
+			defer file.Close()
 
-		fmt.Println(path, hash[:7], line[0])
-
-	}
-
-	/*	if repo != nil {
-		blobIter, errB := repo.BlobObjects()
-
-		if blobIter != nil {
-
-			blobIter.ForEach(func(b *object.Blob) error {
-				fileblob = append(fileblob, b.ID().String())
-				return nil
-			})
-		}
-		if errB != nil {
-			log.Printf("There is not a tree %s", errB)
 		}
 
-	}*/
+		commitNode, err := commitNodeIndex.Get(commit.ID())
 
-	return filepath, err
+		revs, err := getLastCommitForPaths(commitNode, "", filepath)
+
+		/*Obtener informacion lo dos commit el ultimo commit */
+	/*	for path, rev := range revs {
+
+			hash := rev.Hash.String()
+			line := strings.Split(rev.Message, "\n")
+
+			fmt.Println(path, hash[:7], line[0])
+
+		}
+
+		if repo != nil {
+			blobIter, errB := repo.BlobObjects()
+
+			if blobIter != nil {
+
+				blobIter.ForEach(func(b *object.Blob) error {
+					fileblob = append(fileblob, b.ID().String())
+					return nil
+				})
+			}
+			if errB != nil {
+				log.Printf("There is not a tree %s", errB)
+			}
+
+		}*/
+
+	return datafile, err
 }
 
 func getCommitNodeIndex(r *git.Repository, fs billy.Filesystem) (commitgraph.CommitNodeIndex, io.ReadCloser) {
@@ -362,7 +406,7 @@ func getLastCommitForPaths(c commitgraph.CommitNode, treePath string, paths []st
 	return result, nil
 }
 
-func showfile(obj object.Object, path string) (*object.Blob, error) {
+/*func showfile(obj object.Object, path string) (*object.Blob, error) {
 
 	switch o := obj.(type) {
 	case *object.Commit:
@@ -394,4 +438,4 @@ func showfile(obj object.Object, path string) (*object.Blob, error) {
 		return nil, object.ErrUnsupportedObject
 	}
 
-}
+}*/
