@@ -6,7 +6,6 @@ package examples
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"path"
 
@@ -90,32 +89,9 @@ func ListFile(Path string, Namefile string) (string, error) {
 	return file, err
 }
 
-func ListFilesDirectories(Path string) ([]string, error) {
-	repo, err := git.PlainOpen(Path)
-	var files []string
-	if repo != nil {
-		treeIter, errW := repo.TreeObjects()
-
-		if treeIter != nil {
-			treeIter.ForEach(func(t *object.Tree) error {
-
-				// ... get the files iterator and print the file
-
-				t.Files().ForEach(func(f *object.File) error {
-					files = append(files, f.Name)
-					return nil
-				})
-				return nil
-			})
-		}
-		if errW != nil {
-			log.Printf("There is not a tree %s", errW)
-		}
-	}
-	return files, err
-}
-
-func ListBlobFile(repoPath string, fileP string) ([]string, error) {
+/*Funcion que retorna el contenido de cada Blob File
+con la ruta dada por parametro*/
+func ListContenBlobFile(repoPath string, fileP string) ([]string, error) {
 
 	repo, err := git.PlainOpen(repoPath)
 
@@ -129,16 +105,10 @@ func ListBlobFile(repoPath string, fileP string) ([]string, error) {
 
 	tree, err := commit.Tree()
 
-	tree.Tree(fileP)
-	//fs := osfs.New(Path)
-
 	tree.Files().ForEach(func(f *object.File) error {
 
 		filepath = append(filepath, f.Name)
 
-		//blob, err := showfile(commit, f.Name)
-
-		/*Id is present to fulfill the Object interface*/
 		fmt.Printf("File Hashe and Path: %s    %s\n", f.Hash, f.Name)
 
 		return nil
@@ -150,71 +120,21 @@ func ListBlobFile(repoPath string, fileP string) ([]string, error) {
 
 		if filepath[i] == fileP {
 
-			objectblob, err := repo.BlobObject(treefile.Hash)
+			content, err := treefile.Contents()
 
-			openblob, err := objectblob.Reader()
-
-			data, err := ioutil.ReadAll(openblob)
-
-			datafile = append(datafile, string(data))
-
-			fmt.Println(data)
+			datafile = append(datafile, string(content))
 
 			if err != nil {
 
 			}
 			fmt.Printf("FilePath and parameter: %s    %s\n", filepath[i], fileP)
-			fmt.Println(objectblob, objectblob)
+			fmt.Println(content)
 			break
-			//
-
-			//
-
-			//
-
 		}
 
 	}
 
 	fmt.Println(treefile)
-
-	/*	commitNodeIndex, file := getCommitNodeIndex(repo, fs)
-
-		if file != nil {
-
-			defer file.Close()
-
-		}
-
-		commitNode, err := commitNodeIndex.Get(commit.ID())
-
-		revs, err := getLastCommitForPaths(commitNode, "", filepath)
-
-		/*Obtener informacion lo dos commit el ultimo commit */
-	/*	for path, rev := range revs {
-
-			hash := rev.Hash.String()
-			line := strings.Split(rev.Message, "\n")
-
-			fmt.Println(path, hash[:7], line[0])
-
-		}
-
-		if repo != nil {
-			blobIter, errB := repo.BlobObjects()
-
-			if blobIter != nil {
-
-				blobIter.ForEach(func(b *object.Blob) error {
-					fileblob = append(fileblob, b.ID().String())
-					return nil
-				})
-			}
-			if errB != nil {
-				log.Printf("There is not a tree %s", errB)
-			}
-
-		}*/
 
 	return datafile, err
 }
@@ -405,37 +325,3 @@ func getLastCommitForPaths(c commitgraph.CommitNode, treePath string, paths []st
 
 	return result, nil
 }
-
-/*func showfile(obj object.Object, path string) (*object.Blob, error) {
-
-	switch o := obj.(type) {
-	case *object.Commit:
-		t, err := o.Tree()
-
-		if err != nil {
-			return nil, err
-		}
-		return showfile(t, path)
-
-	case *object.Tag:
-		target, err := o.Object()
-
-		if err != nil {
-			return nil, err
-		}
-		return showfile(target, path)
-	case *object.Tree:
-		file, err := o.File(path)
-		if err != nil {
-			return nil, err
-		}
-		return &file.Blob, nil
-
-	case *object.Blob:
-		return o, nil
-
-	default:
-		return nil, object.ErrUnsupportedObject
-	}
-
-}*/
