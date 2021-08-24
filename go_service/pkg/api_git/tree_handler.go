@@ -31,7 +31,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		files, err := examples.ListFilesDirectories(directory.Name)
+		files, err := ListPathFileRepository(directory.Name)
 		if err != nil {
 			response.Message = err.Error()
 			response.Result = "Error"
@@ -81,6 +81,9 @@ func ListFileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+Method Http Content Blob File
+*/
 func ListDataToFile(w http.ResponseWriter, r *http.Request) {
 
 	var directory Directory
@@ -98,7 +101,7 @@ func ListDataToFile(w http.ResponseWriter, r *http.Request) {
 				panic(err)
 			}
 		}
-		files, err := examples.ListBlobFile(directory.Name, directory.File)
+		fileContent, err := examples.ListContenBlobFile(directory.Name, directory.File)
 
 		//	branches, err := api_git.getBranches(directory.Name, 1, 1)
 		if err != nil {
@@ -108,8 +111,8 @@ func ListDataToFile(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, string(encodeData))
 			return
 		}
-		if files != nil {
-			encodeData, _ := json.Marshal(files)
+		if fileContent != nil {
+			encodeData, _ := json.Marshal(fileContent)
 			fmt.Fprintf(w, string(encodeData))
 			return
 		}
