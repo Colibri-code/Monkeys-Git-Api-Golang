@@ -1,6 +1,6 @@
 FROM fedora
 RUN dnf install git -y
-FROM golang:1.15
+FROM golang:1.17
 ENV - GOPATH=/go_service/ .
 RUN mkdir /go_service
 WORKDIR /
