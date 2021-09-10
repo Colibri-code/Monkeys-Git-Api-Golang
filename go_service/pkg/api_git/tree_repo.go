@@ -4,30 +4,65 @@ package api_git
 // the running example
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-func ListFilesDirectories(Path string) ([]string, error) {
-	repo, err := git.PlainOpen(Path)
-	var files []string
-	if repo != nil {
-		treeIter, errW := repo.TreeObjects()
+/*Toma todos los files que tiene el tree Head del repositorio y los
+retorna en un []string*/
+func ListPathFileRepository(repoPath string) ([]string, error) {
 
-		if treeIter != nil {
-			treeIter.ForEach(func(t *object.Tree) error {
-				t.Files().ForEach(func(f *object.File) error {
-					files = append(files, f.Name)
-					return nil
-				})
-				return nil
-			})
-		}
-		if errW != nil {
-			log.Printf("There is not a tree %s", errW)
-		}
+	if repoPath != "" {
+
+		repo, err := git.PlainOpen(repoPath)
+
+		var filepath []string
+
+		ref, err := repo.Head()
+
+		commit, err := repo.CommitObject(ref.Hash())
+
+		tree, err := commit.Tree()
+
+		tree.Files().ForEach(func(f *object.File) error {
+
+			filepath = append(filepath, f.Name)
+
+			fmt.Printf("File Hashe and Path: %s    %s\n", f.Hash, f.Name)
+
+			return nil
+		})
+
+		return filepath, err
 	}
-	return files, err
+
+	return nil, git.ErrRepositoryNotExists
 }
+
+/*func TreeData(repoPath string, filepath string) ([]string, error) {
+
+	repo, err := git.PlainOpen(repoPath)
+
+	ref, err := repo.Head()
+
+	var EntryName []string
+
+	commit, err := repo.CommitObject(ref.Hash())
+
+	tree, err := commit.Tree()
+
+	if err != nil {
+
+	}
+
+	entry , err :=  tree.FindEntry(filepath)
+
+	if err != nil{
+		return nil, object.ErrFileNotFound
+	}
+
+	return entry.Name, err
+
+}*/
