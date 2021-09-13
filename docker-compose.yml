@@ -14,7 +14,7 @@ services:
       dockerfile: goservice.Dockerfile
       context: .
     ports: 
-      - "3000:60"
+      - "3001:3001"
     volumes:
       - ./repos:/app
     restart: always

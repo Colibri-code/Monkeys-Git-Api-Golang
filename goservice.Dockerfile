@@ -5,4 +5,5 @@ ENV - GOPATH=/go_service/ .
 RUN mkdir /go_service
 WORKDIR /
 COPY . /go_service/
-EXPOSE 60/tcp
+EXPOSE 3001/udp
+EXPOSE 3001/tcp
