@@ -14,7 +14,7 @@ func main() {
 
 	// r.HandleFunc("/", HomeHandler).Methods("GET")
 	//r.HandleFunc("/", api_git.HomeHandler).Methods("GET")
-	r.HandleFunc("/ListPathFiles", api_git.ListFilesHandler).Methods("POST")
+	r.HandleFunc("/ListPathFiles", api_git.ListFilesHandler).Methods("GET")
 	r.HandleFunc("/CopyRepoFromTag", api_git.CopyRepoFromTagHandler).Methods("POST")
 	r.HandleFunc("/CreateMerge", api_git.MergeHandler).Methods("POST")
 	r.HandleFunc("/Diff", api_git.DiffHandler).Methods("POST")
