@@ -6,8 +6,8 @@ package api_git
 import (
 	"fmt"
 
+	"github.com/go-git/go-git/plumbing/object"
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 /*Toma todos los files que tiene el tree Head del repositorio y los
@@ -26,14 +26,10 @@ func ListPathFileRepository(repoPath string) ([]string, error) {
 
 		tree, err := commit.Tree()
 
-		tree.Files().ForEach(func(f *object.File) error {
+		for _, entry := range tree.Entries {
 
-			filepath = append(filepath, f.Name)
-
-			fmt.Printf("File Hashe and Path: %s    %s\n", f.Hash, f.Name)
-
-			return nil
-		})
+			filepath = append(filepath, entry.Name)
+		}
 
 		return filepath, err
 	}
@@ -41,13 +37,13 @@ func ListPathFileRepository(repoPath string) ([]string, error) {
 	return nil, git.ErrRepositoryNotExists
 }
 
-/*func TreeData(repoPath string, filepath string) ([]string, error) {
+func TreeData(repoPath string, filepath string) ([]string, error) {
 
 	repo, err := git.PlainOpen(repoPath)
 
 	ref, err := repo.Head()
 
-	var EntryName []string
+	var EntryPaths []string
 
 	commit, err := repo.CommitObject(ref.Hash())
 
@@ -57,12 +53,18 @@ func ListPathFileRepository(repoPath string) ([]string, error) {
 
 	}
 
-	entry , err :=  tree.FindEntry(filepath)
+	Tree_entry, err := tree.Tree(filepath)
 
-	if err != nil{
+	for _, entry := range Tree_entry.Entries {
+
+		EntryPaths = append(EntryPaths, entry.Name)
+	}
+	fmt.Println(Tree_entry)
+
+	if err != nil {
 		return nil, object.ErrFileNotFound
 	}
 
-	return entry.Name, err
+	return EntryPaths, err
 
-}*/
+}

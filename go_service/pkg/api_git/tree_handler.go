@@ -25,6 +25,9 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 	if body != nil {
 		if err := json.Unmarshal(body, &directory); err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 			w.WriteHeader(422) // unprocessable entity
 			if err := json.NewEncoder(w).Encode(err); err != nil {
 				panic(err)
@@ -48,7 +51,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ListFileHandler(w http.ResponseWriter, r *http.Request) {
+func ListTreeFileHandler(w http.ResponseWriter, r *http.Request) {
 	var directory Directory
 	var response tools.Response
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -64,7 +67,7 @@ func ListFileHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		files, err := examples.ListFile(directory.Name, directory.File)
+		files, err := TreeData(directory.Name, directory.File)
 		if err != nil {
 			response.Message = err.Error()
 			response.Result = "Error"
@@ -72,7 +75,7 @@ func ListFileHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, string(encodeData))
 			return
 		}
-		if files != "" {
+		if files != nil {
 			encodeData, _ := json.Marshal(files)
 			fmt.Fprintf(w, string(encodeData))
 			return
