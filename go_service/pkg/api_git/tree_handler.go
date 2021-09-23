@@ -67,7 +67,7 @@ func ListTreeFileHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		files, err := TreeData(directory.Name, directory.File)
+		files, err := ContentTreeData(directory.Name, directory.File)
 		if err != nil {
 			response.Message = err.Error()
 			response.Result = "Error"

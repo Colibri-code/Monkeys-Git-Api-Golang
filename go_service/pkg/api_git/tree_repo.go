@@ -37,7 +37,7 @@ func ListPathFileRepository(repoPath string) ([]string, error) {
 	return nil, git.ErrRepositoryNotExists
 }
 
-func TreeData(repoPath string, filepath string) ([]string, error) {
+func ContentTreeData(repoPath string, filepath string) ([]string, error) {
 
 	repo, err := git.PlainOpen(repoPath)
 
@@ -55,14 +55,18 @@ func TreeData(repoPath string, filepath string) ([]string, error) {
 
 	Tree_entry, err := tree.Tree(filepath)
 
-	for _, entry := range Tree_entry.Entries {
-
-		EntryPaths = append(EntryPaths, entry.Name)
-	}
-	fmt.Println(Tree_entry)
-
 	if err != nil {
-		return nil, object.ErrFileNotFound
+		return nil, git.ErrWorktreeNotProvided
+	} else {
+		for _, entry := range Tree_entry.Entries {
+
+			EntryPaths = append(EntryPaths, entry.Name)
+		}
+		fmt.Println(Tree_entry)
+
+		if err != nil {
+			return nil, object.ErrFileNotFound
+		}
 	}
 
 	return EntryPaths, err
