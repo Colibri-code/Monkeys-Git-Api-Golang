@@ -15,7 +15,6 @@ func main() {
 
 	// r.HandleFunc("/", HomeHandler).Methods("GET")
 	//r.HandleFunc("/", api_git.HomeHandler).Methods("GET")
-	r.HandleFunc("/ListPathFiles", api_git.ListFilesHandler).Methods("POST", "OPTIONS")
 
 	r.HandleFunc("/CopyRepoFromTag", api_git.CopyRepoFromTagHandler).Methods("POST")
 	r.HandleFunc("/CreateMerge", api_git.MergeHandler).Methods("POST")
@@ -26,10 +25,14 @@ func main() {
 	r.HandleFunc("/GetOnePr/{id}", api_git.GetOnePr).Methods("GET")
 	r.HandleFunc("/UpdatePr/{id}", api_git.UpdatePr).Methods("PUT")
 	r.HandleFunc("/DeletePr/{id}", api_git.DeleteOnePr).Methods("DELETE")
-	r.HandleFunc("/ListContentFile", api_git.ListDataToFile).Methods("POST")
 
 	//Tree Routes
-	r.HandleFunc("/ListTreePathFiles", api_git.ListTreeFileHandler).Methods("GET", "OPTIONS")
+	r.HandleFunc("/ListTreePathFiles", api_git.ListTreeFileHandler).Methods("POST", "OPTIONS")
+
+	//Files
+	r.HandleFunc("/ListAllPaths", api_git.ListAllPathsRepository).Methods("POST", "OPTIONS")
+	r.HandleFunc("/ListContentFile", api_git.ListDataContentFile).Methods("POST")
+	r.HandleFunc("/ListPathFiles", api_git.ListFilesHandler).Methods("POST", "OPTIONS")
 
 	handler := cors.Default().Handler(r)
 	// Start server

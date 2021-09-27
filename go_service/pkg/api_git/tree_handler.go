@@ -87,7 +87,7 @@ func ListTreeFileHandler(w http.ResponseWriter, r *http.Request) {
 /*
 Method Http Content Blob File
 */
-func ListDataToFile(w http.ResponseWriter, r *http.Request) {
+func ListDataContentFile(w http.ResponseWriter, r *http.Request) {
 
 	var directory Directory
 	var response tools.Response
