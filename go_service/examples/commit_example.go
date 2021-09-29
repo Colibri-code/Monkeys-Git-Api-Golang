@@ -105,6 +105,9 @@ func ListContenBlobFile(repoPath string, fileP string) ([]string, error) {
 
 	tree, err := commit.Tree()
 
+	/*For que llena el array para que
+	Se pueda obtener el main tree de repositorio
+	*/
 	tree.Files().ForEach(func(f *object.File) error {
 
 		filepath = append(filepath, f.Name)
@@ -114,7 +117,24 @@ func ListContenBlobFile(repoPath string, fileP string) ([]string, error) {
 		return nil
 	})
 
+	//Retorna el file de la ruta que se le pasa
+	//Ejemplo
+	/*
+		repoPath = /var/www/git/repoexample.git
+		fileP = css/assets
+
+		retorna -> ERROR porque no es un archivo esta path es de una carpeta
+
+		fileP = css/styles.css
+
+		retorna ->  "body{\n    background-color: aqua;\n}\n\nheader{\n    position: relative;\n}"
+	*/
+
 	treefile, err := tree.File(fileP)
+
+	if err != nil {
+		return nil, err
+	}
 
 	for i := 0; i < len(filepath); i++ {
 
