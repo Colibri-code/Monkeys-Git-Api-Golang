@@ -39,104 +39,140 @@ func ListPathFileRepository(repoPath string) ([]string, error) {
 
 func ContentTreeData(repoPath string, filepath string) ([]string, error) {
 
-	repo, err := git.PlainOpen(repoPath)
+	ConcatRepoPath := baseRepoDir + repoPath + ".git"
 
-	ref, err := repo.Head()
+	if repoPath != "" {
+		repo, err := git.PlainOpen(ConcatRepoPath)
+
+		if err != nil {
+			return nil, git.ErrRepositoryNotExists
+		}
+
+		var EntryPaths []string
+
+		//	var datafile []string
+
+		//var TreeEntries []string
+
+		/*Obtengo el Tree Head del repositorio*/
+		TreeHead := TreeCommitHead(repo)
+
+		/*Comprobacion de que la path no venga vacia, si viene vacia se lista el
+		main tree del repositorio*/
+		if filepath != "" {
+
+			/*Comprobacion de que tipo de archivo voy a mostrar
+			dependiendo de la ruta*/
+			entry, err := TreeHead.FindEntry(filepath)
+
+			if err != nil {
+				return nil, err
+			}
+			/*Comprobacion de que si lo que viene de la ruta es una carpeta
+			  go-git reconoce el entry.mode 0040000 como carpeta(DIR)
+			*/
+			entryfilemode, err := TreeEntryType(entry, TreeHead, filepath)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return entryfilemode, err
+
+			fmt.Println(entryfilemode)
+
+		} else {
+
+			for _, entry := range TreeHead.Entries {
+
+				EntryPaths = append(EntryPaths, entry.Name)
+			}
+
+		}
+
+		return EntryPaths, err
+
+	} else {
+		return nil, git.ErrRepositoryNotExists
+	}
+
+}
+
+func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string) ([]string, error) {
+
+	entrymode := entry.Mode.String()
 
 	var EntryPaths []string
 
-	var datafile []string
-
 	var TreeEntries []string
 
-	commit, err := repo.CommitObject(ref.Hash())
+	switch entrymode {
+	/*Comprobacion de que si lo que viene de la ruta es una carpeta
+	  go-git reconoce el entry.mode 0040000 como carpeta(DIR)
+	*/
+	case "0040000":
 
-	tree, err := commit.Tree()
+		Tree_entry, err := masterTree.Tree(path)
 
-	/*Comprobacion de que la path no venga vacia, si viene vacia se lista el
-	main tree del repositorio*/
-	if filepath != "" {
+		if err != nil {
 
-		/*Comprobacion de que tipo de archivo voy a mostrar
-		dependiendo de la ruta*/
-		entry, err := tree.FindEntry(filepath)
+			return nil, object.ErrDirectoryNotFound
+
+		} else {
+			for _, entry := range Tree_entry.Entries {
+
+				EntryPaths = append(EntryPaths, entry.Name)
+			}
+			fmt.Println(Tree_entry)
+
+			if err != nil {
+				return nil, object.ErrFileNotFound
+			}
+		}
+		return EntryPaths, nil
+
+	case "0100644":
+
+		/*Llena el array de rutas de los archivos*/
+
+		masterTree.Files().ForEach(func(f *object.File) error {
+
+			TreeEntries = append(TreeEntries, f.Name)
+			return nil
+		})
+
+		treefile, err := masterTree.File(path)
 
 		if err != nil {
 			return nil, err
 		}
-		/*Comprobacion de que si lo que viene de la ruta es una carpeta
-		  go-git reconoce el entry.mode 0040000 como carpeta(DIR)
-		*/
+		//De toda la lista de rutas de archivos que existen
+		//Busco la que viene por parametro para enviar su
+		//Contenido por medio de string[] var
+		for i := 0; i < len(TreeEntries); i++ {
 
-		if entry.Mode.String() == "0040000" {
-			Tree_entry, err := tree.Tree(filepath)
+			if TreeEntries[i] == path {
 
-			if err != nil {
+				content, err := treefile.Contents()
 
-				return nil, object.ErrDirectoryNotFound
+				fileLines, err := treefile.Lines()
 
-			} else {
-				for _, entry := range Tree_entry.Entries {
+				fmt.Println(fileLines)
 
-					EntryPaths = append(EntryPaths, entry.Name)
-				}
-				fmt.Println(Tree_entry)
+				EntryPaths = append(EntryPaths, string(content))
 
 				if err != nil {
-					return nil, object.ErrFileNotFound
-				}
-			}
-			/*Comprueba y muestra el archivo si cumple la condicion*/
-		} else if entry.Mode.String() == "0100644" {
 
-			/*Llena el array de rutas de los archivos*/
-
-			tree.Files().ForEach(func(f *object.File) error {
-
-				TreeEntries = append(TreeEntries, f.Name)
-				return nil
-			})
-
-			treefile, err := tree.File(filepath)
-
-			if err != nil {
-
-			}
-			for i := 0; i < len(TreeEntries); i++ {
-
-				if TreeEntries[i] == filepath {
-
-					content, err := treefile.Contents()
-
-					fileLines, err := treefile.Lines()
-
-					fmt.Println(fileLines)
-
-					datafile = append(datafile, content)
-
-					if err != nil {
-
-					}
-					fmt.Printf("FilePath and parameter: %s    %s\n", filepath[i], filepath)
-					fmt.Println(content)
-					break
 				}
 
+				fmt.Println(content)
+
+				return fileLines, err
 			}
 
-			return datafile, err
-
-		}
-
-	} else {
-
-		for _, entry := range tree.Entries {
-
-			EntryPaths = append(EntryPaths, entry.Name)
 		}
 
 	}
 
-	return EntryPaths, err
-
+	return EntryPaths, nil
 }
