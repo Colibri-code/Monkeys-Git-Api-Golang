@@ -4,9 +4,6 @@ package api_git
 // the running example
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
@@ -157,12 +154,6 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 		for i := 0; i < len(TreeEntries); i++ {
 
 			if TreeEntries[i] == path {
-
-				content, err := treefile.Contents()
-
-				lines := strings.Split(content, "\n")
-
-				fmt.Println(lines)
 
 				BlobData.Data, err = treefile.Lines()
 
