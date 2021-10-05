@@ -75,10 +75,11 @@ func ListTreeFileHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, string(encodeData))
 			return
 		}
-
-		encodeData, _ := json.Marshal(files)
-		fmt.Fprintf(w, string(encodeData))
-		return
+		if files != nil {
+			encodeData, _ := json.Marshal(files)
+			fmt.Fprintf(w, string(encodeData))
+			return
+		}
 
 	}
 }

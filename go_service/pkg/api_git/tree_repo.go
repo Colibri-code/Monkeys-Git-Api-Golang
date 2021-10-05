@@ -5,7 +5,6 @@ package api_git
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -13,13 +12,6 @@ import (
 
 /*Toma todos los files que tiene el tree Head del repositorio y los
 retorna en un []string*/
-
-type EntryInfo struct {
-	EntryName string   `json:"EntryName"`
-	ModeFile  string   `json:"FileMode"`
-	Data      []string `json:"Data"`
-}
-
 func ListPathFileRepository(repoPath string) ([]string, error) {
 
 	if repoPath != "" {
@@ -45,17 +37,22 @@ func ListPathFileRepository(repoPath string) ([]string, error) {
 	return nil, git.ErrRepositoryNotExists
 }
 
-func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
+func ContentTreeData(repoPath string, filepath string) ([]string, error) {
 
 	ConcatRepoPath := baseRepoDir + repoPath + ".git"
 
-	BlobData := EntryInfo{}
 	if repoPath != "" {
 		repo, err := git.PlainOpen(ConcatRepoPath)
 
 		if err != nil {
 			return nil, git.ErrRepositoryNotExists
 		}
+
+		var EntryPaths []string
+
+		//	var datafile []string
+
+		//var TreeEntries []string
 
 		/*Obtengo el Tree Head del repositorio*/
 		TreeHead := TreeCommitHead(repo)
@@ -82,18 +79,18 @@ func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
 
 			return entryfilemode, err
 
-			//	fmt.Println(entryfilemode)
+			fmt.Println(entryfilemode)
 
 		} else {
 
 			for _, entry := range TreeHead.Entries {
 
-				BlobData.Data = append(BlobData.Data, entry.Name)
+				EntryPaths = append(EntryPaths, entry.Name)
 			}
 
 		}
 
-		return &BlobData, err
+		return EntryPaths, err
 
 	} else {
 		return nil, git.ErrRepositoryNotExists
@@ -101,14 +98,14 @@ func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
 
 }
 
-func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string) (*EntryInfo, error) {
+func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string) ([]string, error) {
 
 	entrymode := entry.Mode.String()
-	entryName := entry.Name
+
+	var EntryPaths []string
 
 	var TreeEntries []string
 
-	BlobData := EntryInfo{}
 	switch entrymode {
 	/*Comprobacion de que si lo que viene de la ruta es una carpeta
 	  go-git reconoce el entry.mode 0040000 como carpeta(DIR)
@@ -124,17 +121,15 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 		} else {
 			for _, entry := range Tree_entry.Entries {
 
-				BlobData.Data = append(BlobData.Data, entry.Name)
-				//	EntryPaths = append(EntryPaths, entry.Name)
+				EntryPaths = append(EntryPaths, entry.Name)
 			}
+			fmt.Println(Tree_entry)
 
 			if err != nil {
 				return nil, object.ErrFileNotFound
 			}
-			BlobData.ModeFile = "Dir"
-			BlobData.EntryName = entryName
 		}
-		return &BlobData, nil
+		return EntryPaths, nil
 
 	case "0100644":
 
@@ -160,25 +155,24 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 
 				content, err := treefile.Contents()
 
-				lines := strings.Split(content, "\n")
+				fileLines, err := treefile.Lines()
 
-				fmt.Println(lines)
+				fmt.Println(fileLines)
 
-				BlobData.Data, err = treefile.Lines()
+				EntryPaths = append(EntryPaths, string(content))
 
 				if err != nil {
-					return nil, err
+
 				}
-				BlobData.ModeFile = "Regular"
-				BlobData.EntryName = entryName
 
-				return &BlobData, err
+				fmt.Println(content)
 
+				return fileLines, err
 			}
 
 		}
 
 	}
 
-	return &BlobData, nil
+	return EntryPaths, nil
 }
