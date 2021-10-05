@@ -4,14 +4,19 @@ package api_git
 // the running example
 
 import (
-	"fmt"
-
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 /*Toma todos los files que tiene el tree Head del repositorio y los
 retorna en un []string*/
+
+type EntryInfo struct {
+	EntryName string   `json:"EntryName"`
+	ModeFile  string   `json:"FileMode"`
+	Data      []string `json:"Data"`
+}
+
 func ListPathFileRepository(repoPath string) ([]string, error) {
 
 	if repoPath != "" {
@@ -37,7 +42,7 @@ func ListPathFileRepository(repoPath string) ([]string, error) {
 	return nil, git.ErrRepositoryNotExists
 }
 
-func ContentTreeData(repoPath string, filepath string) ([]string, error) {
+func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
 
 	ConcatRepoPath := baseRepoDir + repoPath + ".git"
 
@@ -79,7 +84,7 @@ func ContentTreeData(repoPath string, filepath string) ([]string, error) {
 
 			return entryfilemode, err
 
-			fmt.Println(entryfilemode)
+			//	fmt.Println(entryfilemode)
 
 		} else {
 
@@ -90,7 +95,7 @@ func ContentTreeData(repoPath string, filepath string) ([]string, error) {
 
 		}
 
-		return EntryPaths, err
+		return &EntryInfo{}, err
 
 	} else {
 		return nil, git.ErrRepositoryNotExists
@@ -98,14 +103,15 @@ func ContentTreeData(repoPath string, filepath string) ([]string, error) {
 
 }
 
-func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string) ([]string, error) {
+func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string) (*EntryInfo, error) {
 
 	entrymode := entry.Mode.String()
-
-	var EntryPaths []string
+	entryName := entry.Name
+	//var EntryPaths []string
 
 	var TreeEntries []string
 
+	BlobData := EntryInfo{}
 	switch entrymode {
 	/*Comprobacion de que si lo que viene de la ruta es una carpeta
 	  go-git reconoce el entry.mode 0040000 como carpeta(DIR)
@@ -121,15 +127,17 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 		} else {
 			for _, entry := range Tree_entry.Entries {
 
-				EntryPaths = append(EntryPaths, entry.Name)
+				BlobData.Data = append(BlobData.Data, entry.Name)
+				//	EntryPaths = append(EntryPaths, entry.Name)
 			}
-			fmt.Println(Tree_entry)
 
 			if err != nil {
 				return nil, object.ErrFileNotFound
 			}
+			BlobData.ModeFile = entrymode
+			BlobData.EntryName = entryName
 		}
-		return EntryPaths, nil
+		return &BlobData, nil
 
 	case "0100644":
 
@@ -153,26 +161,29 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 
 			if TreeEntries[i] == path {
 
-				content, err := treefile.Contents()
+				BlobData.Data, err = treefile.Lines()
+				//		fmt.Println(BlobData)
+				//	content, err := treefile.Contents()
 
-				fileLines, err := treefile.Lines()
+				//fileLines, err := treefile.Lines()
 
-				fmt.Println(fileLines)
+				//fmt.Println(fileLines)
 
-				EntryPaths = append(EntryPaths, string(content))
+				//EntryPaths = append(EntryPaths, string(content))
 
 				if err != nil {
 
 				}
+				BlobData.ModeFile = entrymode
+				BlobData.EntryName = entryName
 
-				fmt.Println(content)
+				return &BlobData, err
 
-				return fileLines, err
 			}
 
 		}
 
 	}
 
-	return EntryPaths, nil
+	return &BlobData, nil
 }
