@@ -4,6 +4,9 @@ package api_git
 // the running example
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
@@ -46,18 +49,13 @@ func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
 
 	ConcatRepoPath := baseRepoDir + repoPath + ".git"
 
+	BlobData := EntryInfo{}
 	if repoPath != "" {
 		repo, err := git.PlainOpen(ConcatRepoPath)
 
 		if err != nil {
 			return nil, git.ErrRepositoryNotExists
 		}
-
-		var EntryPaths []string
-
-		//	var datafile []string
-
-		//var TreeEntries []string
 
 		/*Obtengo el Tree Head del repositorio*/
 		TreeHead := TreeCommitHead(repo)
@@ -90,12 +88,12 @@ func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
 
 			for _, entry := range TreeHead.Entries {
 
-				EntryPaths = append(EntryPaths, entry.Name)
+				BlobData.Data = append(BlobData.Data, entry.Name)
 			}
 
 		}
 
-		return &EntryInfo{}, err
+		return &BlobData, err
 
 	} else {
 		return nil, git.ErrRepositoryNotExists
@@ -107,7 +105,6 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 
 	entrymode := entry.Mode.String()
 	entryName := entry.Name
-	//var EntryPaths []string
 
 	var TreeEntries []string
 
@@ -134,7 +131,7 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 			if err != nil {
 				return nil, object.ErrFileNotFound
 			}
-			BlobData.ModeFile = entrymode
+			BlobData.ModeFile = "Dir"
 			BlobData.EntryName = entryName
 		}
 		return &BlobData, nil
@@ -161,20 +158,18 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 
 			if TreeEntries[i] == path {
 
+				content, err := treefile.Contents()
+
+				lines := strings.Split(content, "\n")
+
+				fmt.Println(lines)
+
 				BlobData.Data, err = treefile.Lines()
-				//		fmt.Println(BlobData)
-				//	content, err := treefile.Contents()
-
-				//fileLines, err := treefile.Lines()
-
-				//fmt.Println(fileLines)
-
-				//EntryPaths = append(EntryPaths, string(content))
 
 				if err != nil {
-
+					return nil, err
 				}
-				BlobData.ModeFile = entrymode
+				BlobData.ModeFile = "Regular"
 				BlobData.EntryName = entryName
 
 				return &BlobData, err
