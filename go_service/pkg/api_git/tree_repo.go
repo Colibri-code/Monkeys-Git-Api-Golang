@@ -87,6 +87,7 @@ func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
 
 				BlobData.Data = append(BlobData.Data, entry.Name)
 			}
+			BlobData.ModeFile = "Dir"
 
 		}
 
