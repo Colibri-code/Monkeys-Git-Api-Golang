@@ -4,6 +4,8 @@ package api_git
 // the running example
 
 import (
+	//"regexp"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
@@ -15,6 +17,12 @@ type EntryInfo struct {
 	EntryName string   `json:"EntryName"`
 	ModeFile  string   `json:"FileMode"`
 	Data      []string `json:"Data"`
+}
+
+type JsonEntryInfo struct {
+	EntryName   string `json:"EntryName"`
+	ModeFile    string `json:"FileMode"`
+	DataContent string `json:"DataContent"`
 }
 
 func ListPathFileRepository(repoPath string) ([]string, error) {
@@ -103,10 +111,11 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 
 	entrymode := entry.Mode.String()
 	entryName := entry.Name
-
+	//JsonName, _ := regexp.MatchString(".json", entryName)
 	var TreeEntries []string
 
 	BlobData := EntryInfo{}
+
 	switch entrymode {
 	/*Comprobacion de que si lo que viene de la ruta es una carpeta
 	  go-git reconoce el entry.mode 0040000 como carpeta(DIR)
@@ -131,6 +140,7 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 			}
 			BlobData.ModeFile = "Dir"
 			BlobData.EntryName = entryName
+
 		}
 		return &BlobData, nil
 
@@ -149,6 +159,7 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 		if err != nil {
 			return nil, err
 		}
+
 		//De toda la lista de rutas de archivos que existen
 		//Busco la que viene por parametro para enviar su
 		//Contenido por medio de string[] var
@@ -173,4 +184,30 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 	}
 
 	return &BlobData, nil
+}
+
+//Contenido de un Archivo
+func JsonContentData(RepoPath string, JsonPath string) (*JsonEntryInfo, error) {
+
+	JsonEntry := JsonEntryInfo{}
+
+	repo, err := OpenRepository(RepoPath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	TreeHead := TreeCommitHead(repo)
+
+	JsonFile, err := TreeHead.File(JsonPath)
+
+	if err != nil {
+		return nil, object.ErrEntryNotFound
+	}
+
+	JsonEntry.DataContent, err = JsonFile.Contents()
+
+	JsonEntry.EntryName = JsonFile.Name
+
+	return &JsonEntry, err
 }
