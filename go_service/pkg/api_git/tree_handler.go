@@ -14,6 +14,9 @@ type Directory struct {
 	Name string `json:"name"`
 	File string `json:"file"`
 }
+type JsonData struct {
+	Data string `json:"Data"`
+}
 
 func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 	var directory Directory
@@ -76,15 +79,22 @@ func ListTreeFileHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, string(encodeData))
 			return
 		}
-		//if files.isJson {
-		//	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		if files.isJson {
 
-		//jsonmarhal, _ := json.Unmarshal([]byte(files.Data), &EntryInfo)
-		//jsonmarhal, _ := json.Marshal(files.Data)
-		//fmt.Fprintf(w, string(jsonmarhal))
+			//var datajson []JsonData
+			//json.Unmarshal([]byte(files), &JsonData)
 
-		//	return
-		//	}
+			//fmt.Fprintf(w, string(jsonmarhal))
+
+			//fmt.Println(datae)
+			//w.Write([]byte(files.JsonDataContent))
+
+			encodeData, _ := json.Marshal(files)
+
+			w.Write(encodeData)
+			//fmt.Fprintf(w, string(encodeData))
+			return
+		}
 		encodeData, _ := json.Marshal(files)
 		fmt.Fprintf(w, string(encodeData))
 		return
@@ -131,7 +141,7 @@ func ListDataContentFile(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func JsonContenFileHandler(w http.ResponseWriter, r *http.Request) {
+/* func JsonContenFileHandler(w http.ResponseWriter, r *http.Request) {
 	var directory Directory
 	var response tools.Response
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -165,4 +175,4 @@ func JsonContenFileHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-}
+}*/

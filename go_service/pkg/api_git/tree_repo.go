@@ -4,7 +4,7 @@ package api_git
 // the running example
 
 import (
-	//"regexp"
+	"regexp"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -14,15 +14,11 @@ import (
 retorna en un []string*/
 
 type EntryInfo struct {
-	EntryName string   `json:"EntryName"`
-	ModeFile  string   `json:"FileMode"`
-	Data      []string `json:"Data"`
-}
-
-type JsonEntryInfo struct {
-	EntryName   string `json:"EntryName"`
-	ModeFile    string `json:"FileMode"`
-	DataContent string `json:"DataContent"`
+	EntryName       string   `json:"EntryName"`
+	ModeFile        string   `json:"FileMode"`
+	Data            []string `json:"Data, omitempty"`
+	isJson          bool     `json:"isJson, omitempty"`
+	JsonDataContent string   `json:"JsonContent, omitempty"`
 }
 
 func ListPathFileRepository(repoPath string) ([]string, error) {
@@ -55,7 +51,9 @@ func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
 	ConcatRepoPath := baseRepoDir + repoPath + ".git"
 
 	BlobData := EntryInfo{}
+
 	if repoPath != "" {
+		//Abre el repositorio que viene en la request Name:
 		repo, err := git.PlainOpen(ConcatRepoPath)
 
 		if err != nil {
@@ -77,14 +75,23 @@ func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
 				return nil, err
 			}
 			/*Comprobacion de que si lo que viene de la ruta es una carpeta
-			  go-git reconoce el entry.mode 0040000 como carpeta(DIR)
+			  go-git reconoce el entry.mode 0040000 como carpeta(DIR) o si es un Archivo entry.mode 0100644 Regular
 			*/
 			entryfilemode, err := TreeEntryType(entry, TreeHead, filepath)
 
 			if err != nil {
 				return nil, err
 			}
+			/*Retorno la respuesta
+			*Todo el contenido << estructura >>
 
+			* EntryName
+			* FileMode
+			* Data
+			* IsJson
+			* JsonContent
+
+			 */
 			return entryfilemode, err
 
 			//	fmt.Println(entryfilemode)
@@ -107,12 +114,21 @@ func ContentTreeData(repoPath string, filepath string) (*EntryInfo, error) {
 
 }
 
+/*
+* entry es el archivo al que quiero obtener
+* master tree es el nodo (archivo) root o repo Raiz
+* path es la ruta concatenda del archivo o carpeta (nodo actual) example: miproyecto/src
+ */
 func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string) (*EntryInfo, error) {
 
 	entrymode := entry.Mode.String()
 	entryName := entry.Name
-	//JsonName, _ := regexp.MatchString(".json", entryName)
-	var TreeEntries []string
+
+	//Variable bool que comprueba si el archivo es un Json
+	isJson, _ := regexp.MatchString(".json", entryName)
+
+	//toma todos lo que tiene una carpeta
+	//	var TreeEntries []string
 
 	BlobData := EntryInfo{}
 
@@ -122,6 +138,7 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 	*/
 	case "0040000":
 
+		// de la carpeta que estoy tomando por ruta tome lo que tiene adentro(contenido)
 		Tree_entry, err := masterTree.Tree(path)
 
 		if err != nil {
@@ -143,29 +160,66 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 
 		}
 		return &BlobData, nil
-
+	/*Comprobacion de que si lo que viene de la ruta es una carpeta
+	  go-git reconoce el entry.mode 0100644 como Regular
+	*/
 	case "0100644":
 
 		/*Llena el array de rutas de los archivos*/
 
-		masterTree.Files().ForEach(func(f *object.File) error {
+		/*	masterTree.Files().ForEach(func(f *object.File) error {
 
 			TreeEntries = append(TreeEntries, f.Name)
 			return nil
-		})
+		})*/
 
 		treefile, err := masterTree.File(path)
 
 		if err != nil {
 			return nil, err
-		}
+		} else {
+			if isJson {
+				//	JsonContent, err := treefile.Lines()
 
-		//De toda la lista de rutas de archivos que existen
-		//Busco la que viene por parametro para enviar su
-		//Contenido por medio de string[] var
-		for i := 0; i < len(TreeEntries); i++ {
+				//fmt.Println(treefile.Lines())
 
-			if TreeEntries[i] == path {
+				//fmt.Println("-----------")
+
+				//fmt.Println(treefile.Contents())
+				//BlobData.Data, err = treefile.Lines()
+				BlobData.EntryName = entryName
+				BlobData.isJson = true
+				BlobData.ModeFile = "json"
+				//BlobData.Data, err = treefile.Contents()
+				BlobData.JsonDataContent, err = treefile.Contents()
+
+				if err != nil {
+					return nil, err
+				}
+				/* 		var content []*EntryInfo
+
+				contenido := make(map[string][]*EntryInfo)
+
+				for _, p := range content {
+					for _, l := range p.Data {
+						contenido[l] = append(contenido[l], p)
+					}
+				}
+				fmt.Println(contenido) */
+
+				///justString := strings.Join(JsonContent, "")
+
+				///fmt.Println(justString)
+
+				///BlobData.Data = justString
+
+				return &BlobData, err
+
+			} else {
+
+				//De toda la lista de rutas de archivos que existen
+				//Busco la que viene por parametro para enviar su
+				//Contenido por medio de string[] var
 
 				BlobData.Data, err = treefile.Lines()
 
@@ -176,18 +230,15 @@ func TreeEntryType(entry *object.TreeEntry, masterTree *object.Tree, path string
 				BlobData.EntryName = entryName
 
 				return &BlobData, err
-
 			}
-
 		}
-
 	}
 
 	return &BlobData, nil
 }
 
 //Contenido de un Archivo
-func JsonContentData(RepoPath string, JsonPath string) (*JsonEntryInfo, error) {
+/* func JsonContentData(RepoPath string, JsonPath string) (*JsonEntryInfo, error) {
 
 	JsonEntry := JsonEntryInfo{}
 
@@ -210,4 +261,4 @@ func JsonContentData(RepoPath string, JsonPath string) (*JsonEntryInfo, error) {
 	JsonEntry.EntryName = JsonFile.Name
 
 	return &JsonEntry, err
-}
+} */
