@@ -28,7 +28,7 @@ func main() {
 
 	//Tree Routes
 	r.HandleFunc("/ListTreePathFiles", api_git.ListTreeFileHandler).Methods("POST", "OPTIONS")
-
+	//	r.HandleFunc("/JsonContent", api_git.JsonContenFileHandler).Methods("POST", "OPTIONS")
 	//Files
 	r.HandleFunc("/ListAllPaths", api_git.ListAllPathsRepository).Methods("POST", "OPTIONS")
 	r.HandleFunc("/ListContentFile", api_git.ListDataContentFile).Methods("POST")

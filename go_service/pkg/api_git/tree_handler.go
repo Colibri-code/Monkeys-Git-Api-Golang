@@ -14,6 +14,9 @@ type Directory struct {
 	Name string `json:"name"`
 	File string `json:"file"`
 }
+type JsonData struct {
+	Data string `json:"Data"`
+}
 
 func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 	var directory Directory
@@ -68,6 +71,7 @@ func ListTreeFileHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		files, err := ContentTreeData(directory.Name, directory.File)
+
 		if err != nil {
 			response.Message = err.Error()
 			response.Result = "Error"
@@ -75,7 +79,22 @@ func ListTreeFileHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, string(encodeData))
 			return
 		}
+		if files.isJson {
 
+			//var datajson []JsonData
+			//json.Unmarshal([]byte(files), &JsonData)
+
+			//fmt.Fprintf(w, string(jsonmarhal))
+
+			//fmt.Println(datae)
+			//w.Write([]byte(files.JsonDataContent))
+
+			encodeData, _ := json.Marshal(files)
+
+			w.Write(encodeData)
+			//fmt.Fprintf(w, string(encodeData))
+			return
+		}
 		encodeData, _ := json.Marshal(files)
 		fmt.Fprintf(w, string(encodeData))
 		return
@@ -122,12 +141,7 @@ func ListDataContentFile(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/*
-type Directory struct {
-	Name string `json:"name"`
-}
-
-func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
+/* func JsonContenFileHandler(w http.ResponseWriter, r *http.Request) {
 	var directory Directory
 	var response tools.Response
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -143,7 +157,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		files, err := examples.ListFilesDirectories(directory.Name)
+		files, err := JsonContentData(directory.Name, directory.File)
 		if err != nil {
 			response.Message = err.Error()
 			response.Result = "Error"
@@ -152,8 +166,11 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if files != nil {
-			encodeData, _ := json.Marshal(files)
-			fmt.Fprintf(w, string(encodeData))
+
+			//encodeData, _ := json.Marshal(files)
+			w.Write([]byte(files.DataContent))
+			//fmt.Println(string(encodeData))
+			//	fmt.Fprintf(w, string(encodeData))
 			return
 		}
 

@@ -73,3 +73,19 @@ func CopyRepoFromTag(tagRequest TagRequest) (bool, error) {
 	}
 	return false, err
 }
+
+//Function to open repository
+func OpenRepository(RepoPath string) (*git.Repository, error) {
+
+	if RepoPath != "" {
+		ConcatRepoPath := baseRepoDir + RepoPath + ".git"
+
+		repository, err := git.PlainOpen(ConcatRepoPath)
+
+		if err != nil {
+			return nil, git.ErrRepositoryNotExists
+		}
+		return repository, err
+	}
+	return nil, git.ErrRepositoryNotExists
+}
